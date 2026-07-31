@@ -1,0 +1,255 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  CLIENT
+  OPERATOR
+  ENGINEER
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  STANDBY
+  AVAILABLE
+}
+
+model User {
+  id           String     @id @default(cuid())
+  name         String
+  email        String     @unique
+  phone        String?    @unique
+  passwordHash String
+  role         Role
+  status       UserStatus @default(ACTIVE)
+
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+
+  plantId String?
+  plant   Plant?  @relation(fields: [plantId], references: [id], onDelete: SetNull)
+
+  assignedTickets Ticket[] @relation("AssignedEngineerTickets")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([organizationId])
+  @@index([plantId])
+  @@index([role])
+  @@index([status])
+}
+
+model Organization {
+  id                String  @id @default(cuid())
+  name              String
+  address           String
+  contactPersonName String
+  phone             String  @unique
+  email             String  @unique
+  organizationType  String
+  gstNumber         String? @unique
+  description       String?
+
+  users     User[]
+  buildings Building[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Building {
+  id             String @id @default(cuid())
+  name           String
+  location       String
+  organizationId String
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  plants       Plant[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([organizationId, name])
+  @@index([organizationId])
+}
+
+model Plant {
+  id                String    @id @default(cuid())
+  name              String
+  code              String?   @unique
+  address           String
+  city              String
+  state             String
+  pincode           String
+  capacity          Float
+  technology        String
+  commissioningDate DateTime?
+  buildingId        String
+
+  building Building @relation(fields: [buildingId], references: [id], onDelete: Cascade)
+  tanks    Tank[]
+  alerts   Alert[]
+  tickets  Ticket[]
+  users    User[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([buildingId, name])
+  @@index([buildingId])
+}
+
+enum TankStatus {
+  ACTIVE
+  INACTIVE
+  MAINTENANCE
+}
+
+enum SensorType {
+  PH
+  TSS
+  BOD
+  COD
+  DISSOLVED_OXYGEN
+  TURBIDITY
+  H2S
+  TEMPERATURE
+}
+
+model Tank {
+  id       String     @id @default(cuid())
+  name     String
+  capacity Float
+  status   TankStatus @default(ACTIVE)
+
+  plantId String
+  plant   Plant  @relation(fields: [plantId], references: [id], onDelete: Cascade)
+
+  sensors Sensor[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([plantId, name])
+  @@index([plantId])
+}
+
+model Sensor {
+  id   String     @id @default(cuid())
+  name String
+  type SensorType
+
+  minimumThreshold Float?
+  maximumThreshold Float?
+  unit             String?
+
+  tankId String
+  tank   Tank   @relation(fields: [tankId], references: [id], onDelete: Cascade)
+
+  readings SensorReading[]
+  alerts   Alert[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tankId, name])
+  @@index([tankId])
+  @@index([type])
+}
+
+model SensorReading {
+  id         String   @id @default(cuid())
+  value      Float
+  recordedAt DateTime @default(now())
+
+  sensorId String
+  sensor   Sensor @relation(fields: [sensorId], references: [id], onDelete: Cascade)
+
+  @@index([sensorId])
+  @@index([recordedAt])
+  @@index([sensorId, recordedAt])
+}
+
+enum AlertSeverity {
+  WARNING
+  CRITICAL
+}
+
+model Alert {
+  id          String        @id @default(cuid())
+  title       String
+  description String?
+  severity    AlertSeverity
+  status      AlertStatus   @default(OPEN)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  resolvedAt  DateTime?
+
+  plantId String
+  plant   Plant  @relation(fields: [plantId], references: [id], onDelete: Cascade)
+
+  sensorId String?
+  sensor   Sensor? @relation(fields: [sensorId], references: [id], onDelete: SetNull)
+
+  tickets Ticket[]
+
+  @@index([plantId])
+  @@index([sensorId])
+  @@index([status])
+  @@index([severity])
+}
+
+model Ticket {
+  id          String         @id @default(cuid())
+  title       String
+  description String?
+  status      TicketStatus   @default(OPEN)
+  priority    TicketPriority @default(MEDIUM)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  resolvedAt  DateTime?
+
+  plantId String
+  plant   Plant  @relation(fields: [plantId], references: [id], onDelete: Cascade)
+
+  alertId String?
+  alert   Alert?  @relation(fields: [alertId], references: [id], onDelete: SetNull)
+
+  assignedEngineerId String?
+  assignedEngineer   User?   @relation("AssignedEngineerTickets", fields: [assignedEngineerId], references: [id], onDelete: SetNull)
+
+  @@index([plantId])
+  @@index([alertId])
+  @@index([assignedEngineerId])
+  @@index([status])
+  @@index([priority])
+}
+
+enum AlertStatus {
+  OPEN
+  ACKNOWLEDGED
+  RESOLVED
+}
+
+enum TicketStatus {
+  OPEN
+  ASSIGNED
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+enum TicketPriority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
