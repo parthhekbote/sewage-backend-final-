@@ -36,7 +36,8 @@ model User {
   plantId String?
   plant   Plant?  @relation(fields: [plantId], references: [id], onDelete: SetNull)
 
-  assignedTickets Ticket[] @relation("AssignedEngineerTickets")
+  assignedTickets   Ticket[]           @relation("AssignedEngineerTickets")
+  passwordResetOtps PasswordResetOtp[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -252,4 +253,23 @@ enum TicketPriority {
   MEDIUM
   HIGH
   CRITICAL
+}
+
+model PasswordResetOtp {
+  id String @id @default(cuid())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  otpHash String
+
+  expiresAt  DateTime
+  verifiedAt DateTime?
+  usedAt     DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@index([userId, createdAt])
 }
