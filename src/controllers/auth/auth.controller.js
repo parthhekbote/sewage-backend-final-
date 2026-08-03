@@ -3,6 +3,7 @@ const jwt = require("jsonwebtoken");
 
 const prisma = require("../../config/db");
 
+// REGISTER USER
 const register = async (req, res) => {
   try {
     const {
@@ -15,20 +16,25 @@ const register = async (req, res) => {
       plantId,
     } = req.body;
 
-    if (!name || !email || !password || !role) {
+    if (!name || !email || !phone || !password || !role) {
       return res.status(400).json({
         success: false,
-        message: "Name, email, password and role are required",
+        message: "Name, email, phone, password and role are required",
       });
     }
 
     const normalizedEmail = email.trim().toLowerCase();
+    const normalizedPhone = phone.trim();
 
     const existingUser = await prisma.user.findFirst({
       where: {
         OR: [
-          { email: normalizedEmail },
-          ...(phone ? [{ phone }] : []),
+          {
+            email: normalizedEmail,
+          },
+          {
+            phone: normalizedPhone,
+          },
         ],
       },
     });
@@ -40,7 +46,12 @@ const register = async (req, res) => {
       });
     }
 
-    const allowedRoles = ["ADMIN", "CLIENT", "OPERATOR", "ENGINEER"];
+    const allowedRoles = [
+      "ADMIN",
+      "CLIENT",
+      "OPERATOR",
+      "ENGINEER",
+    ];
 
     if (!allowedRoles.includes(role)) {
       return res.status(400).json({
@@ -51,7 +62,9 @@ const register = async (req, res) => {
 
     if (organizationId) {
       const organization = await prisma.organization.findUnique({
-        where: { id: organizationId },
+        where: {
+          id: organizationId,
+        },
       });
 
       if (!organization) {
@@ -64,7 +77,9 @@ const register = async (req, res) => {
 
     if (plantId) {
       const plant = await prisma.plant.findUnique({
-        where: { id: plantId },
+        where: {
+          id: plantId,
+        },
       });
 
       if (!plant) {
@@ -81,7 +96,7 @@ const register = async (req, res) => {
       data: {
         name: name.trim(),
         email: normalizedEmail,
-        phone: phone || null,
+        phone: normalizedPhone,
         passwordHash,
         role,
         organizationId: organizationId || null,
@@ -115,29 +130,30 @@ const register = async (req, res) => {
   }
 };
 
+// LOGIN WITH PHONE NUMBER
 const login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { phone, password } = req.body;
 
-    if (!email || !password) {
+    if (!phone || !password) {
       return res.status(400).json({
         success: false,
-        message: "Email and password are required",
+        message: "Phone number and password are required",
       });
     }
 
-    const normalizedEmail = email.trim().toLowerCase();
+    const normalizedPhone = phone.trim();
 
     const user = await prisma.user.findUnique({
       where: {
-        email: normalizedEmail,
+        phone: normalizedPhone,
       },
     });
 
     if (!user) {
       return res.status(401).json({
         success: false,
-        message: "Invalid email or password",
+        message: "Invalid phone number or password",
       });
     }
 
@@ -149,7 +165,7 @@ const login = async (req, res) => {
     if (!passwordMatches) {
       return res.status(401).json({
         success: false,
-        message: "Invalid email or password",
+        message: "Invalid phone number or password",
       });
     }
 
@@ -161,7 +177,9 @@ const login = async (req, res) => {
     }
 
     if (!process.env.JWT_SECRET) {
-      throw new Error("JWT_SECRET is missing from environment variables");
+      throw new Error(
+        "JWT_SECRET is missing from environment variables"
+      );
     }
 
     const token = jwt.sign(
