@@ -110,6 +110,7 @@ const register = async (req, res) => {
 
     const passwordHash = await bcrypt.hash(password, 12);
 
+
     const user = await prisma.user.create({
       data: {
         name: name.trim(),
@@ -153,39 +154,42 @@ const login = async (req, res) => {
   try {
     const { phone, password } = req.body;
 
-    if (!phone || !password) {
-      return res.status(400).json({
-        success: false,
-        message: "Phone number and password are required",
-      });
-    }
+if (!phone || !password) {
+  return res.status(400).json({
+    success: false,
+    message: "Phone number and password are required",
+  });
+}
 
-    const normalizedPhone = phone.trim();
+const normalizedPhone = phone.trim();
 
-    const user = await prisma.user.findUnique({
-      where: {
-        phone: normalizedPhone,
-      },
-    });
+const user = await prisma.user.findUnique({
+  where: {
+    phone: normalizedPhone,
+  },
+});
+if (!user) {
+  return res.status(401).json({
+    success: false,
+    message: "Invalid phone number or password",
+  });
+}
 
-    if (!user) {
-      return res.status(401).json({
-        success: false,
-        message: "Invalid phone number or password",
-      });
-    }
+const passwordMatches = await bcrypt.compare(
+  password,
+  user.passwordHash
+);
 
-    const passwordMatches = await bcrypt.compare(
-      password,
-      user.passwordHash
-    );
+console.log("Entered password:", password);
+console.log("Password matches:", passwordMatches);
 
-    if (!passwordMatches) {
-      return res.status(401).json({
-        success: false,
-        message: "Invalid phone number or password",
-      });
-    }
+if (!passwordMatches) {
+  return res.status(401).json({
+    success: false,
+    message: "Invalid phone number or password",
+  });
+}
+
 
     if (user.status === "INACTIVE") {
       return res.status(403).json({
@@ -210,7 +214,7 @@ const login = async (req, res) => {
         expiresIn: "7d",
       }
     );
-
+console.log("LOGIN SUCCESS");
     return res.status(200).json({
       success: true,
       message: "Login successful",

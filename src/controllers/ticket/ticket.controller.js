@@ -15,7 +15,7 @@ const createTicket = async (req, res) => {
     const {
       title,
       description,
-      priority,
+      priority, 
       plantId,
       alertId,
       assignedEngineerId,
@@ -234,12 +234,19 @@ const getTickets = async (req, res) => {
         },
         include: {
           plant: {
-            select: {
-              id: true,
-              name: true,
-              code: true,
-            },
+  include: {
+    building: {
+      include: {
+        organization: {
+          select: {
+            id: true,
+            name: true,
           },
+        },
+      },
+    },
+  },
+},
           alert: {
             select: {
               id: true,
