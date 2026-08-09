@@ -17,6 +17,7 @@ const taskRoutes = require("./task.routes");
 const visitReportRoutes = require("./visitReport.routes");
 const workReportRoutes = require("./workReport.routes");
 const manualTestRoutes = require("./manualTest.routes");
+const clientAppRoutes = require("./clientApp.routes");
 
 const router = express.Router();
 
@@ -37,5 +38,6 @@ router.use("/tasks", taskRoutes);
 router.use("/visit-reports", visitReportRoutes);
 router.use("/work-reports", workReportRoutes);
 router.use("/manual-tests", manualTestRoutes);
+router.use("/client", clientAppRoutes);
 
 module.exports = router;

@@ -248,6 +248,102 @@ async function createBuildingsAndPlants(organizations) {
   return plants;
 }
 
+async function createTanksAndPumps(plants) {
+  const tankTemplates = [
+    {
+      name: "Inlet Tank",
+      pump: {
+        name: "Inlet Pump A",
+        brand: "Kirloskar",
+        modelNumber: "CR-32-4",
+        capacity: 32,
+        powerKw: 4,
+      },
+    },
+    {
+      name: "Anaerobic Tank",
+      pump: {
+        name: "Recirculation Pump A",
+        brand: "KSB",
+        modelNumber: "ETA-40-20",
+        capacity: 28,
+        powerKw: 3.7,
+      },
+    },
+    {
+      name: "Settling Tank",
+      pump: {
+        name: "Sludge Pump A",
+        brand: "Crompton",
+        modelNumber: "SWJ-50",
+        capacity: 20,
+        powerKw: 3,
+      },
+    },
+    {
+      name: "Treated Water Tank",
+      pump: {
+        name: "Transfer Pump A",
+        brand: "Grundfos",
+        modelNumber: "CM-10-2",
+        capacity: 35,
+        powerKw: 4.5,
+      },
+    },
+    {
+      name: "Polishing Tank",
+      pump: {
+        name: "Polishing Pump A",
+        brand: "Wilo",
+        modelNumber: "MHI-204",
+        capacity: 24,
+        powerKw: 3.2,
+      },
+    },
+  ];
+
+  let tankCount = 0;
+  let pumpCount = 0;
+
+  for (let plantIndex = 0; plantIndex < plants.length; plantIndex += 1) {
+    const plant = plants[plantIndex];
+
+    for (let tankIndex = 0; tankIndex < tankTemplates.length; tankIndex += 1) {
+      const template = tankTemplates[tankIndex];
+      const installedAt = new Date(2021 + (plantIndex % 3), tankIndex, 5);
+      const warrantyExpiresAt = new Date(installedAt);
+      warrantyExpiresAt.setFullYear(installedAt.getFullYear() + 3);
+
+      await prisma.tank.create({
+        data: {
+          name: template.name,
+          capacity: 1000 + tankIndex * 250,
+          status: "ACTIVE",
+          plantId: plant.id,
+          pumps: {
+            create: {
+              ...template.pump,
+              status: tankIndex === 0 ? "SERVICE_NEEDED" : "ACTIVE",
+              capacityUnit: "m³/hr",
+              installedAt,
+              warrantyExpiresAt,
+              flowRate: template.pump.capacity * 0.82,
+              pressure: 2.5 + tankIndex * 0.2,
+              runtimeHours: 3200 + plantIndex * 120 + tankIndex * 80,
+            },
+          },
+        },
+      });
+
+      tankCount += 1;
+      pumpCount += 1;
+    }
+  }
+
+  console.log(`Created ${tankCount} tanks`);
+  console.log(`Created ${pumpCount} pumps`);
+}
+
 async function createAdminUsers(passwordHash) {
   const admins = [
     {
@@ -322,6 +418,8 @@ async function main() {
 
   const organizations = await createOrganizations();
   const plants = await createBuildingsAndPlants(organizations);
+
+  await createTanksAndPumps(plants);
 
   await createAdminUsers(passwordHash);
 
