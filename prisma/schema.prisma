@@ -21,6 +21,30 @@ enum UserStatus {
   AVAILABLE
 }
 
+enum TaskStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+}
+
+enum VisitCondition {
+  HEALTHY
+  NEEDS_ATTENTION
+  CRITICAL
+}
+
+enum EquipmentCondition {
+  FIXED
+  NEEDS_MONITORING
+  FURTHER_REPAIR_REQUIRED
+}
+
+enum ManualTestStatus {
+  GOOD
+  WARNING
+  CRITICAL
+}
+
 model User {
   id           String     @id @default(cuid())
   name         String
@@ -38,6 +62,13 @@ model User {
 
   assignedTickets   Ticket[]           @relation("AssignedEngineerTickets")
   passwordResetOtps PasswordResetOtp[]
+
+  operatorTasks             Task[]             @relation("OperatorTasks")
+  engineerVisitReports      VisitReport[]      @relation("EngineerVisitReports")
+  engineerWorkReports       WorkReport[]       @relation("EngineerWorkReports")
+  engineerManualTestResults ManualTestResult[] @relation("EngineerManualTests")
+  operatorManualTestResults ManualTestResult[] @relation("OperatorManualTests")
+  operatorTankerLogs        TankerLog[]        @relation("OperatorTankerLogs")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -95,11 +126,15 @@ model Plant {
   commissioningDate DateTime?
   buildingId        String
 
-  building Building @relation(fields: [buildingId], references: [id], onDelete: Cascade)
-  tanks    Tank[]
-  alerts   Alert[]
-  tickets  Ticket[]
-  users    User[]
+  building     Building      @relation(fields: [buildingId], references: [id], onDelete: Cascade)
+  tanks        Tank[]
+  alerts       Alert[]
+  tickets      Ticket[]
+  users        User[]
+  tasks        Task[]
+  visitReports VisitReport[]
+  metrics      PlantMetrics?
+  tankerLogs   TankerLog[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -134,7 +169,9 @@ model Tank {
   plantId String
   plant   Plant  @relation(fields: [plantId], references: [id], onDelete: Cascade)
 
-  sensors Sensor[]
+  sensors           Sensor[]
+  pumps             Pump[]
+  manualTestResults ManualTestResult[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -143,10 +180,29 @@ model Tank {
   @@index([plantId])
 }
 
+model Pump {
+  id           String @id @default(cuid())
+  name         String
+  status       String @default("UNKNOWN")
+  flowRate     Float?
+  pressure     Float?
+  runtimeHours Float?
+
+  tankId String
+  tank   Tank   @relation(fields: [tankId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tankId, name])
+  @@index([tankId])
+}
+
 model Sensor {
-  id   String     @id @default(cuid())
-  name String
-  type SensorType
+  id      String     @id @default(cuid())
+  name    String
+  type    SensorType
+  enabled Boolean    @default(true)
 
   minimumThreshold Float?
   maximumThreshold Float?
@@ -226,7 +282,8 @@ model Ticket {
   alert   Alert?  @relation(fields: [alertId], references: [id], onDelete: SetNull)
 
   assignedEngineerId String?
-  assignedEngineer   User?   @relation("AssignedEngineerTickets", fields: [assignedEngineerId], references: [id], onDelete: SetNull)
+  assignedEngineer   User?        @relation("AssignedEngineerTickets", fields: [assignedEngineerId], references: [id], onDelete: SetNull)
+  workReports        WorkReport[]
 
   @@index([plantId])
   @@index([alertId])
@@ -273,4 +330,176 @@ model PasswordResetOtp {
   @@index([userId])
   @@index([expiresAt])
   @@index([userId, createdAt])
+}
+
+model Task {
+  id             String     @id @default(cuid())
+  title          String
+  description    String?
+  status         TaskStatus @default(PENDING)
+  dueAt          DateTime?
+  completionNote String?
+  imageUrls      String[]   @default([])
+
+  plantId String
+  plant   Plant  @relation(fields: [plantId], references: [id], onDelete: Cascade)
+
+  operatorId String
+  operator   User   @relation("OperatorTasks", fields: [operatorId], references: [id], onDelete: Restrict)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([plantId])
+  @@index([operatorId])
+  @@index([status])
+  @@index([dueAt])
+}
+
+model VisitReport {
+  id          String         @id @default(cuid())
+  observation String
+  condition   VisitCondition
+  imageUrls   String[]       @default([])
+  visitedAt   DateTime       @default(now())
+
+  plantId String
+  plant   Plant  @relation(fields: [plantId], references: [id], onDelete: Cascade)
+
+  engineerId String
+  engineer   User   @relation("EngineerVisitReports", fields: [engineerId], references: [id], onDelete: Restrict)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([plantId])
+  @@index([engineerId])
+  @@index([condition])
+  @@index([visitedAt])
+}
+
+model WorkReport {
+  id                 String             @id @default(cuid())
+  description        String
+  actionsTaken       String
+  partsReplaced      String?
+  equipmentCondition EquipmentCondition
+  imageUrls          String[]           @default([])
+
+  ticketId String
+  ticket   Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  engineerId String
+  engineer   User   @relation("EngineerWorkReports", fields: [engineerId], references: [id], onDelete: Restrict)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([ticketId, engineerId])
+  @@index([ticketId])
+  @@index([engineerId])
+  @@index([equipmentCondition])
+  @@index([createdAt])
+}
+
+model PlantMetrics {
+  id                String    @id
+  plantId           String    @unique
+  treatedWater      Float?
+  flowRate          Float?
+  energyConsumption Float?
+  complianceScore   Int?      @default(100)
+  violations        Int?      @default(0)
+  lastDesludging    DateTime?
+  nextDesludging    DateTime?
+  sensorsOnline     Int?      @default(0)
+  sensorsTotal      Int?      @default(0)
+
+  plant Plant @relation(fields: [plantId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([plantId])
+}
+
+model ManualTestResult {
+  id String @id @default(cuid())
+
+  ph          Float
+  bod         Float
+  cod         Float
+  doValue     Float
+  tss         Float
+  turbidity   Float
+  temperature Float
+
+  status            ManualTestStatus
+  testedAt          DateTime         @default(now())
+  notes             String?
+  parameterStatuses Json?
+
+  tankId String
+  tank   Tank   @relation(fields: [tankId], references: [id], onDelete: Cascade)
+
+  engineerId String?
+  engineer   User?   @relation("EngineerManualTests", fields: [engineerId], references: [id], onDelete: Restrict)
+
+  operatorId String?
+  operator   User?   @relation("OperatorManualTests", fields: [operatorId], references: [id], onDelete: Restrict)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tankId])
+  @@index([engineerId])
+  @@index([status])
+  @@index([testedAt])
+  @@index([tankId, testedAt])
+  @@index([operatorId])
+}
+
+model ManualTestThreshold {
+  parameter   String     @id
+  sensorType  SensorType @unique
+  goodMin     Float
+  goodMax     Float
+  warningMin  Float
+  warningMax  Float
+  criticalMin Float
+  criticalMax Float
+  unit        String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model TankerLog {
+  id String @id @default(cuid())
+
+  tankerNumber String
+  agency       String
+  volume       Float
+  volumeUnit   String @default("kL")
+
+  receiptImageUrl String?
+
+  latitude  Float?
+  longitude Float?
+
+  plantId String
+  plant   Plant  @relation(fields: [plantId], references: [id], onDelete: Cascade)
+
+  operatorId String
+  operator   User   @relation("OperatorTankerLogs", fields: [operatorId], references: [id], onDelete: Restrict)
+
+  loggedAt  DateTime @default(now())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([plantId])
+  @@index([operatorId])
+  @@index([tankerNumber])
+  @@index([agency])
+  @@index([loggedAt])
 }

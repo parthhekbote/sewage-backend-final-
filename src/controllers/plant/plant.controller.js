@@ -1,4 +1,92 @@
 const prisma = require("../../config/db");
+const { randomUUID } = require("crypto");
+
+const updatePlantMetrics = async (req, res) => {
+  try {
+    const plant = await prisma.plant.findUnique({
+      where: { id: req.params.id },
+      select: { id: true },
+    });
+    if (!plant) {
+      return res.status(404).json({ success: false, message: "Plant not found" });
+    }
+
+    const floatFields = ["treatedWater", "flowRate", "energyConsumption"];
+    const integerFields = ["complianceScore", "violations", "sensorsOnline", "sensorsTotal"];
+    const data = {};
+
+    for (const field of floatFields) {
+      if (req.body[field] !== undefined) {
+        const value = Number(req.body[field]);
+        if (!Number.isFinite(value) || value < 0) {
+          return res.status(400).json({ success: false, message: `${field} must be a non-negative number` });
+        }
+        data[field] = value;
+      }
+    }
+
+    for (const field of integerFields) {
+      if (req.body[field] !== undefined) {
+        const value = Number(req.body[field]);
+        if (!Number.isInteger(value) || value < 0) {
+          return res.status(400).json({ success: false, message: `${field} must be a non-negative integer` });
+        }
+        data[field] = value;
+      }
+    }
+
+    if (data.complianceScore !== undefined && data.complianceScore > 100) {
+      return res.status(400).json({ success: false, message: "complianceScore cannot exceed 100" });
+    }
+    const online = data.sensorsOnline;
+    const total = data.sensorsTotal;
+    if (online !== undefined && total !== undefined && online > total) {
+      return res.status(400).json({ success: false, message: "sensorsOnline cannot exceed sensorsTotal" });
+    }
+
+    for (const field of ["lastDesludging", "nextDesludging"]) {
+      if (req.body[field] !== undefined) {
+        if (req.body[field] === null || req.body[field] === "") {
+          data[field] = null;
+        } else {
+          const value = new Date(req.body[field]);
+          if (Number.isNaN(value.getTime())) {
+            return res.status(400).json({ success: false, message: `${field} must be a valid date` });
+          }
+          data[field] = value;
+        }
+      }
+    }
+
+    if (Object.keys(data).length === 0) {
+      return res.status(400).json({ success: false, message: "At least one metric field is required" });
+    }
+
+    const existing = await prisma.plantMetrics.findUnique({
+      where: { plantId: plant.id },
+      select: { sensorsOnline: true, sensorsTotal: true },
+    });
+    const finalOnline = data.sensorsOnline ?? existing?.sensorsOnline;
+    const finalTotal = data.sensorsTotal ?? existing?.sensorsTotal;
+    if (finalOnline != null && finalTotal != null && finalOnline > finalTotal) {
+      return res.status(400).json({ success: false, message: "sensorsOnline cannot exceed sensorsTotal" });
+    }
+
+    const metrics = await prisma.plantMetrics.upsert({
+      where: { plantId: plant.id },
+      update: data,
+      create: { id: randomUUID(), plantId: plant.id, ...data },
+    });
+    return res.status(200).json({
+      success: true,
+      message: "Plant metrics updated successfully",
+      metrics,
+    });
+  } catch (error) {
+    console.error("Update plant metrics error:", error);
+    return res.status(500).json({ success: false, message: "Failed to update plant metrics" });
+  }
+};
 
 // CREATE PLANT
 const createPlant = async (req, res) => {
@@ -109,6 +197,7 @@ const duplicatePlant = await prisma.plant.findFirst({
         buildingId,
       },
       include: {
+        metrics: true,
         building: {
           include: {
             organization: {
@@ -236,6 +325,7 @@ const getPlants = async (req, res) => {
           createdAt: "desc",
         },
         include: {
+          metrics: true,
           building: {
             include: {
               organization: {
@@ -292,6 +382,7 @@ const getPlantById = async (req, res) => {
         id,
       },
       include: {
+        metrics: true,
         building: {
           include: {
             organization: true,
@@ -605,4 +696,5 @@ module.exports = {
   getPlantById,
   updatePlant,
   deletePlant,
+  updatePlantMetrics,
 };

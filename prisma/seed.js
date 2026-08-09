@@ -225,6 +225,20 @@ async function createBuildingsAndPlants(organizations) {
       },
     });
 
+    await prisma.plantMetrics.create({
+      data: {
+        id: `metrics-${plant.id}`,
+        plantId: plant.id,
+        treatedWater: 100 + index * 8.5,
+        flowRate: 10 + index * 0.6,
+        energyConsumption: 45 + index * 2.5,
+        complianceScore: Math.max(82, 96 - index),
+        violations: index % 3,
+        sensorsOnline: 35,
+        sensorsTotal: 35,
+      },
+    });
+
     plants.push(plant);
   }
 

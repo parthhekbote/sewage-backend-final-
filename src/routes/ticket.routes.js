@@ -26,7 +26,7 @@ router
     createTicket
   )
   .get(
-    authorizeRoles("ADMIN", "OPERATOR", "ENGINEER"),
+    authorizeRoles("ADMIN", "OPERATOR"),
     getTickets
   );
 
@@ -38,13 +38,13 @@ router.patch(
 
 router.patch(
   "/:id/start",
-  authorizeRoles("ADMIN", "ENGINEER"),
+  authorizeRoles("ADMIN"),
   startTicket
 );
 
 router.patch(
   "/:id/resolve",
-  authorizeRoles("ADMIN", "ENGINEER"),
+  authorizeRoles("ADMIN"),
   resolveTicket
 );
 
@@ -57,7 +57,7 @@ router.patch(
 router
   .route("/:id")
   .get(
-    authorizeRoles("ADMIN", "OPERATOR", "ENGINEER"),
+    authorizeRoles("ADMIN", "OPERATOR"),
     getTicketById
   )
   .put(

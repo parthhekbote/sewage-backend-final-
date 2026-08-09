@@ -6,6 +6,7 @@ const {
   getPlantById,
   updatePlant,
   deletePlant,
+  updatePlantMetrics,
 } = require("../controllers/plant/plant.controller");
 
 const protect = require("../middleware/auth.middleware");
@@ -15,6 +16,8 @@ const router = express.Router();
 
 router.use(protect);
 router.use(authorizeRoles("ADMIN"));
+
+router.put("/:id/metrics", updatePlantMetrics);
 
 router
   .route("/")

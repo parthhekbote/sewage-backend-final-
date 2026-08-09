@@ -10,6 +10,13 @@ const sensorReadingRoutes = require("./sensorReading.routes");
 const alertRoutes = require("./alert.routes");
 const ticketRoutes = require("./ticket.routes");
 const engineerRoutes = require("./engineer.routes");
+const engineerAppRoutes = require("./engineerApp.routes");
+const operatorRoutes = require("./operator.routes");
+const operatorAppRoutes = require("./operatorApp.routes");
+const taskRoutes = require("./task.routes");
+const visitReportRoutes = require("./visitReport.routes");
+const workReportRoutes = require("./workReport.routes");
+const manualTestRoutes = require("./manualTest.routes");
 
 const router = express.Router();
 
@@ -23,5 +30,12 @@ router.use("/sensor-readings", sensorReadingRoutes);
 router.use("/alerts", alertRoutes);
 router.use("/tickets", ticketRoutes);
 router.use("/engineers", engineerRoutes);
+router.use("/engineer", engineerAppRoutes);
+router.use("/operators", operatorRoutes);
+router.use("/operator", operatorAppRoutes);
+router.use("/tasks", taskRoutes);
+router.use("/visit-reports", visitReportRoutes);
+router.use("/work-reports", workReportRoutes);
+router.use("/manual-tests", manualTestRoutes);
 
 module.exports = router;
