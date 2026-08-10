@@ -1,6 +1,39 @@
 const jwt = require("jsonwebtoken");
 const prisma = require("../config/db");
 
+const findAuthenticatedUser = async (userId) => {
+  const query = () => prisma.user.findUnique({
+    where: {
+      id: userId,
+    },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      role: true,
+      status: true,
+      organizationId: true,
+      plantId: true,
+    },
+  });
+
+  try {
+    return await query();
+  } catch (error) {
+    const transientConnectionError =
+      error?.code === "P1017" ||
+      error?.code === "P1001" ||
+      error?.code === "P1002";
+
+    if (!transientConnectionError) {
+      throw error;
+    }
+
+    await prisma.$connect();
+    return query();
+  }
+};
+
 const protect = async (req, res, next) => {
   try {
     const authorizationHeader = req.headers.authorization;
@@ -29,20 +62,7 @@ const protect = async (req, res, next) => {
       process.env.JWT_SECRET
     );
 
-    const user = await prisma.user.findUnique({
-      where: {
-        id: decoded.userId,
-      },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        role: true,
-        status: true,
-        organizationId: true,
-        plantId: true,
-      },
-    });
+    const user = await findAuthenticatedUser(decoded.userId);
 
     if (!user) {
       return res.status(401).json({

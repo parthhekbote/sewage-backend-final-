@@ -69,6 +69,7 @@ model User {
   engineerManualTestResults ManualTestResult[] @relation("EngineerManualTests")
   operatorManualTestResults ManualTestResult[] @relation("OperatorManualTests")
   operatorTankerLogs        TankerLog[]        @relation("OperatorTankerLogs")
+  clientTankerLogs          TankerLog[]        @relation("ClientTankerLogs")
   createdTickets            Ticket[]           @relation("CreatedTickets")
 
   createdAt DateTime @default(now())
@@ -502,8 +503,11 @@ model TankerLog {
   plantId String
   plant   Plant  @relation(fields: [plantId], references: [id], onDelete: Cascade)
 
-  operatorId String
-  operator   User   @relation("OperatorTankerLogs", fields: [operatorId], references: [id], onDelete: Restrict)
+  operatorId String?
+  operator   User?   @relation("OperatorTankerLogs", fields: [operatorId], references: [id], onDelete: Restrict)
+
+  clientId String?
+  client   User?   @relation("ClientTankerLogs", fields: [clientId], references: [id], onDelete: Restrict)
 
   loggedAt  DateTime @default(now())
   createdAt DateTime @default(now())
@@ -511,6 +515,7 @@ model TankerLog {
 
   @@index([plantId])
   @@index([operatorId])
+  @@index([clientId])
   @@index([tankerNumber])
   @@index([agency])
   @@index([loggedAt])

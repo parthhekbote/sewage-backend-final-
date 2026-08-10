@@ -196,6 +196,47 @@ const getAlerts = async (req, res) => {
               id: true,
               name: true,
               code: true,
+              users: {
+                where: {
+                  role: {
+                    in: ["ENGINEER", "OPERATOR"],
+                  },
+                },
+                select: {
+                  id: true,
+                  name: true,
+                  email: true,
+                  phone: true,
+                  role: true,
+                  status: true,
+                },
+              },
+              building: {
+                select: {
+                  organization: {
+                    select: {
+                      id: true,
+                      name: true,
+                      contactPersonName: true,
+                      email: true,
+                      phone: true,
+                      users: {
+                        where: {
+                          role: "CLIENT",
+                        },
+                        select: {
+                          id: true,
+                          name: true,
+                          email: true,
+                          phone: true,
+                          role: true,
+                          status: true,
+                        },
+                      },
+                    },
+                  },
+                },
+              },
             },
           },
           sensor: {

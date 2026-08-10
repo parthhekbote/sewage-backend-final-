@@ -370,6 +370,7 @@ const getTankerLogs = async (req, res) => {
       prisma.tankerLog.findMany({ where, skip, take: limit, orderBy: { loggedAt: "desc" }, include: {
         plant: { select: { id: true, name: true, code: true, address: true, city: true, state: true } },
         operator: { select: { id: true, name: true, phone: true } },
+        client: { select: { id: true, name: true, phone: true } },
       } }),
       prisma.tankerLog.count({ where }),
     ]);
@@ -382,13 +383,96 @@ const getTankerLogs = async (req, res) => {
   }
 };
 
+const createTankerLog = async (req, res) => {
+  try {
+    const organizationId = requireOrganization(req, res);
+    if (!organizationId) return;
+
+    const tankerNumber = typeof req.body.tankerNumber === "string"
+      ? req.body.tankerNumber.trim().toUpperCase()
+      : "";
+    const agency = typeof req.body.agency === "string" ? req.body.agency.trim() : "";
+    const volume = Number(req.body.volume);
+    const plantId = typeof req.body.plantId === "string" ? req.body.plantId.trim() : "";
+    const receiptImageUrl = typeof req.body.receiptImageUrl === "string"
+      ? req.body.receiptImageUrl.trim()
+      : "";
+
+    if (tankerNumber.length < 4) {
+      return res.status(400).json({ success: false, message: "Enter a valid tanker number" });
+    }
+    if (!agency) {
+      return res.status(400).json({ success: false, message: "Agency is required" });
+    }
+    if (!Number.isFinite(volume) || volume <= 0) {
+      return res.status(400).json({ success: false, message: "Volume must be greater than zero" });
+    }
+    if (!plantId) {
+      return res.status(400).json({ success: false, message: "Plant is required" });
+    }
+
+    const plant = await prisma.plant.findFirst({
+      where: { id: plantId, ...plantAccess(organizationId) },
+      select: { id: true },
+    });
+    if (!plant) {
+      return res.status(404).json({ success: false, message: "Plant not found in your organization" });
+    }
+
+    if (receiptImageUrl && !receiptImageUrl.startsWith(`/api/client/tanker-receipts/${req.user.id}-`)) {
+      return res.status(400).json({ success: false, message: "Invalid receipt image URL" });
+    }
+
+    const latitude = req.body.latitude == null ? null : Number(req.body.latitude);
+    const longitude = req.body.longitude == null ? null : Number(req.body.longitude);
+    if (latitude != null && (!Number.isFinite(latitude) || latitude < -90 || latitude > 90)) {
+      return res.status(400).json({ success: false, message: "Invalid latitude" });
+    }
+    if (longitude != null && (!Number.isFinite(longitude) || longitude < -180 || longitude > 180)) {
+      return res.status(400).json({ success: false, message: "Invalid longitude" });
+    }
+
+    const tankerLog = await prisma.tankerLog.create({
+      data: {
+        tankerNumber,
+        agency,
+        volume,
+        volumeUnit: "kL",
+        receiptImageUrl: receiptImageUrl || null,
+        latitude,
+        longitude,
+        plantId,
+        clientId: req.user.id,
+      },
+      include: {
+        plant: { select: { id: true, name: true, code: true, address: true, city: true, state: true } },
+        operator: { select: { id: true, name: true, phone: true } },
+        client: { select: { id: true, name: true, phone: true } },
+      },
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: "Tanker trip logged successfully",
+      tankerLog,
+    });
+  } catch (error) {
+    console.error("Create Client tanker log error:", error);
+    return res.status(500).json({ success: false, message: "Failed to log tanker trip" });
+  }
+};
+
 const getTankerLogById = async (req, res) => {
   try {
     const organizationId = requireOrganization(req, res);
     if (!organizationId) return;
     const tankerLog = await prisma.tankerLog.findFirst({
       where: { id: req.params.id, plant: plantAccess(organizationId) },
-      include: { plant: true, operator: { select: { id: true, name: true, phone: true } } },
+      include: {
+        plant: true,
+        operator: { select: { id: true, name: true, phone: true } },
+        client: { select: { id: true, name: true, phone: true } },
+      },
     });
     if (!tankerLog) return res.status(404).json({ success: false, message: "Tanker log not found" });
     return res.status(200).json({ success: true, tankerLog });
@@ -403,10 +487,13 @@ const getTankerReceipt = async (req, res) => {
     const organizationId = requireOrganization(req, res);
     if (!organizationId) return;
     const filename = path.basename(req.params.filename);
-    const receiptImageUrl = `/api/operator/tanker-receipts/${filename}`;
+    const receiptImageUrls = [
+      `/api/operator/tanker-receipts/${filename}`,
+      `/api/client/tanker-receipts/${filename}`,
+    ];
     const tankerLog = await prisma.tankerLog.findFirst({
       where: {
-        receiptImageUrl,
+        receiptImageUrl: { in: receiptImageUrls },
         plant: plantAccess(organizationId),
       },
       select: { id: true },
@@ -422,8 +509,20 @@ const getTankerReceipt = async (req, res) => {
   }
 };
 
+const uploadTankerReceipt = async (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ success: false, message: "Receipt image is required" });
+  }
+  return res.status(201).json({
+    success: true,
+    message: "Receipt uploaded successfully",
+    receiptImageUrl: `/api/client/tanker-receipts/${req.file.filename}`,
+  });
+};
+
 module.exports = {
   getDashboard, getProfile, getPlants, getPlantById, getPlantAnalytics, getPlantHistory,
   getAlerts, getOperators, createTicket, getTickets, getTicketById,
-  getManualTests, createManualTest, getManualTestById, getTankerLogs, getTankerLogById, getTankerReceipt,
+  getManualTests, createManualTest, getManualTestById,
+  getTankerLogs, createTankerLog, getTankerLogById, uploadTankerReceipt, getTankerReceipt,
 };

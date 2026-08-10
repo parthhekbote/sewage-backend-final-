@@ -390,12 +390,34 @@ const getPlantById = async (req, res) => {
         },
         tanks: {
           include: {
-            sensors: true,
+            sensors: {
+              include: {
+                readings: {
+                  orderBy: { recordedAt: "desc" },
+                  take: 1,
+                },
+              },
+            },
           },
         },
         alerts: {
           orderBy: {
             createdAt: "desc",
+          },
+          include: {
+            tickets: {
+              include: {
+                assignedEngineer: {
+                  select: {
+                    id: true,
+                    name: true,
+                    phone: true,
+                    email: true,
+                    status: true,
+                  },
+                },
+              },
+            },
           },
         },
         tickets: {
@@ -690,10 +712,104 @@ const deletePlant = async (req, res) => {
   }
 };
 
+const getPlantAnalytics = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const period = (req.query.period || "week").toLowerCase();
+    const periodDays = { day: 1, week: 7, month: 30, year: 365 };
+
+    if (!periodDays[period]) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid period. Use day, week, month, or year",
+      });
+    }
+
+    const plant = await prisma.plant.findUnique({
+      where: { id },
+      select: { id: true },
+    });
+    if (!plant) {
+      return res.status(404).json({ success: false, message: "Plant not found" });
+    }
+
+    const from = new Date();
+    from.setDate(from.getDate() - periodDays[period]);
+
+    const readings = await prisma.sensorReading.findMany({
+      where: {
+        recordedAt: { gte: from },
+        sensor: {
+          tank: { plantId: id },
+          type: { in: ["PH", "COD", "DISSOLVED_OXYGEN"] },
+        },
+      },
+      orderBy: { recordedAt: "asc" },
+      select: {
+        value: true,
+        recordedAt: true,
+        sensor: {
+          select: {
+            type: true,
+            tank: { select: { id: true, name: true } },
+          },
+        },
+      },
+    });
+
+    const analytics = { do: [], ph: [], cod: [] };
+    const grouped = { do: new Map(), ph: new Map(), cod: new Map() };
+
+    const getMetricKey = (type) => {
+      if (type === "PH") return "ph";
+      if (type === "COD") return "cod";
+      return "do";
+    };
+
+    const getBucket = (date) => {
+      const iso = date.toISOString();
+      if (period === "day") return iso.slice(0, 13) + ":00:00.000Z";
+      if (period === "year") return iso.slice(0, 7) + "-01T00:00:00.000Z";
+      return iso.slice(0, 10) + "T00:00:00.000Z";
+    };
+
+    for (const reading of readings) {
+      const metricKey = getMetricKey(reading.sensor.type);
+      analytics[metricKey].push(reading.value);
+
+      const bucket = getBucket(reading.recordedAt);
+      const current = grouped[metricKey].get(bucket) || { total: 0, count: 0 };
+      current.total += reading.value;
+      current.count += 1;
+      grouped[metricKey].set(bucket, current);
+    }
+
+    const series = Object.fromEntries(
+      Object.entries(grouped).map(([metric, buckets]) => [
+        metric,
+        [...buckets.entries()].map(([recordedAt, aggregate]) => ({
+          recordedAt,
+          value: Number((aggregate.total / aggregate.count).toFixed(2)),
+          readingCount: aggregate.count,
+        })),
+      ])
+    );
+
+    return res.status(200).json({ success: true, period, analytics, series });
+  } catch (error) {
+    console.error("Get Admin plant analytics error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch plant analytics",
+    });
+  }
+};
+
 module.exports = {
   createPlant,
   getPlants,
   getPlantById,
+  getPlantAnalytics,
   updatePlant,
   deletePlant,
   updatePlantMetrics,

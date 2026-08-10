@@ -4,6 +4,7 @@ const {
   createPlant,
   getPlants,
   getPlantById,
+  getPlantAnalytics,
   updatePlant,
   deletePlant,
   updatePlantMetrics,
@@ -18,6 +19,7 @@ router.use(protect);
 router.use(authorizeRoles("ADMIN"));
 
 router.put("/:id/metrics", updatePlantMetrics);
+router.get("/:id/analytics", getPlantAnalytics);
 
 router
   .route("/")

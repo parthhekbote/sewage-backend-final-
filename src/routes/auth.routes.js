@@ -1,8 +1,11 @@
 const express = require("express");
 
 const protect = require("../middleware/auth.middleware");
+const authorizeRoles = require("../middleware/role.middleware");
 
 const {
+  getMe,
+  updateAdminPassword,
   register,
   login,
   changePassword,
@@ -15,6 +18,13 @@ const router = express.Router();
 
 router.post("/register", register);
 router.post("/login", login);
+router.get("/me", protect, getMe);
+router.patch(
+  "/admin-password",
+  protect,
+  authorizeRoles("ADMIN"),
+  updateAdminPassword
+);
 
 router.patch(
   "/change-password",

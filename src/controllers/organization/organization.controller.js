@@ -142,6 +142,26 @@ const getOrganizations = async (req, res) => {
             createdAt: "desc",
           },
           include: {
+            buildings: {
+              orderBy: {
+                createdAt: "asc",
+              },
+              include: {
+                plants: {
+                  include: {
+                    metrics: true,
+                    _count: {
+                      select: {
+                        alerts: true,
+                        tickets: true,
+                        tanks: true,
+                        users: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
             _count: {
               select: {
                 users: true,
