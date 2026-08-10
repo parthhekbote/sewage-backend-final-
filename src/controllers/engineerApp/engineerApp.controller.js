@@ -376,6 +376,7 @@ const getPlants = async (req, res) => {
   try {
     const plants = await prisma.plant.findMany({
       where: {
+        status: "ACTIVE",
         users: {
           some: {
             id: req.user.id,
@@ -430,6 +431,7 @@ const getPlantById = async (req, res) => {
     const plant = await prisma.plant.findFirst({
       where: {
         id: req.params.id,
+        status: "ACTIVE",
         users: {
           some: {
             id: req.user.id,

@@ -127,6 +127,8 @@ model Plant {
   technology        String
   commissioningDate DateTime?
   buildingId        String
+  status            PlantStatus @default(ACTIVE)
+  archivedAt        DateTime?
 
   building     Building      @relation(fields: [buildingId], references: [id], onDelete: Cascade)
   tanks        Tank[]
@@ -143,6 +145,12 @@ model Plant {
 
   @@unique([buildingId, name])
   @@index([buildingId])
+  @@index([status])
+}
+
+enum PlantStatus {
+  ACTIVE
+  ARCHIVED
 }
 
 enum TankStatus {

@@ -20,7 +20,10 @@ const requireOrganization = (req, res) => {
   return null;
 };
 
-const plantAccess = (organizationId) => ({ building: { organizationId } });
+const plantAccess = (organizationId) => ({
+  status: "ACTIVE",
+  building: { organizationId },
+});
 const plantSummaryInclude = {
   building: { include: { organization: { select: { id: true, name: true } } } },
   metrics: true,

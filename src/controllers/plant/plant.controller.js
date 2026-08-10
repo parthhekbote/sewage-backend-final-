@@ -248,6 +248,7 @@ const getPlants = async (req, res) => {
     const skip = (pageNumber - 1) * limitNumber;
 
     const where = {
+      status: "ACTIVE",
       ...(buildingId && {
         buildingId,
       }),
@@ -377,9 +378,10 @@ const getPlantById = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const plant = await prisma.plant.findUnique({
+    const plant = await prisma.plant.findFirst({
       where: {
         id,
+        status: "ACTIVE",
       },
       include: {
         metrics: true,
@@ -659,16 +661,6 @@ const deletePlant = async (req, res) => {
       where: {
         id,
       },
-      include: {
-        _count: {
-          select: {
-            tanks: true,
-            alerts: true,
-            tickets: true,
-            users: true,
-          },
-        },
-      },
     });
 
     if (!plant) {
@@ -678,29 +670,26 @@ const deletePlant = async (req, res) => {
       });
     }
 
-    const hasLinkedRecords =
-      plant._count.tanks > 0 ||
-      plant._count.alerts > 0 ||
-      plant._count.tickets > 0 ||
-      plant._count.users > 0;
-
-    if (hasLinkedRecords) {
-      return res.status(409).json({
-        success: false,
-        message:
-          "Cannot delete plant because it has linked tanks, alerts, tickets or users",
+    if (plant.status === "ARCHIVED") {
+      return res.status(200).json({
+        success: true,
+        message: "Plant is already archived",
       });
     }
 
-    await prisma.plant.delete({
+    await prisma.plant.update({
       where: {
         id,
+      },
+      data: {
+        status: "ARCHIVED",
+        archivedAt: new Date(),
       },
     });
 
     return res.status(200).json({
       success: true,
-      message: "Plant deleted successfully",
+      message: "Plant archived successfully",
     });
   } catch (error) {
     console.error("Delete plant error:", error);

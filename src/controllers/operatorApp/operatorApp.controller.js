@@ -136,7 +136,11 @@ const getPlant = async (req, res) => {
     if (!req.user.plantId) return res.status(200).json({ success: true, plant: null });
 
     const plant = await prisma.plant.findFirst({
-      where: { id: req.user.plantId, users: { some: { id: req.user.id } } },
+      where: {
+        id: req.user.plantId,
+        status: "ACTIVE",
+        users: { some: { id: req.user.id } },
+      },
       include: {
         building: { include: { organization: true } },
         metrics: true,
