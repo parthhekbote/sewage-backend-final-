@@ -45,6 +45,13 @@ enum ManualTestStatus {
   CRITICAL
 }
 
+enum DesludgingStatus {
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
 model User {
   id           String     @id @default(cuid())
   name         String
@@ -71,6 +78,8 @@ model User {
   operatorTankerLogs        TankerLog[]        @relation("OperatorTankerLogs")
   clientTankerLogs          TankerLog[]        @relation("ClientTankerLogs")
   createdTickets            Ticket[]           @relation("CreatedTickets")
+  scheduledDesludging       DesludgingRecord[] @relation("ScheduledDesludging")
+  completedDesludging       DesludgingRecord[] @relation("CompletedDesludging")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -139,6 +148,7 @@ model Plant {
   visitReports VisitReport[]
   metrics      PlantMetrics?
   tankerLogs   TankerLog[]
+  desludgingRecords DesludgingRecord[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -442,6 +452,38 @@ model PlantMetrics {
   updatedAt DateTime @updatedAt
 
   @@index([plantId])
+}
+
+model DesludgingRecord {
+  id              String            @id @default(cuid())
+  scheduledAt     DateTime
+  startedAt       DateTime?
+  completedAt     DateTime?
+  status          DesludgingStatus  @default(SCHEDULED)
+  volume          Float?
+  volumeUnit      String            @default("kL")
+  agency          String?
+  tankerNumber    String?
+  notes           String?
+  receiptImageUrl String?
+
+  plantId String
+  plant   Plant @relation(fields: [plantId], references: [id], onDelete: Cascade)
+
+  scheduledById String
+  scheduledBy   User @relation("ScheduledDesludging", fields: [scheduledById], references: [id], onDelete: Restrict)
+
+  completedById String?
+  completedBy   User? @relation("CompletedDesludging", fields: [completedById], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([plantId])
+  @@index([status])
+  @@index([scheduledAt])
+  @@index([scheduledById])
+  @@index([completedById])
 }
 
 model ManualTestResult {

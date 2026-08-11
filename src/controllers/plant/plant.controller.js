@@ -3,6 +3,12 @@ const { randomUUID } = require("crypto");
 
 const updatePlantMetrics = async (req, res) => {
   try {
+    if (req.body.lastDesludging !== undefined || req.body.nextDesludging !== undefined) {
+      return res.status(403).json({
+        success: false,
+        message: "Desludging dates are managed through the Engineer and Operator workflow",
+      });
+    }
     const plant = await prisma.plant.findUnique({
       where: { id: req.params.id },
       select: { id: true },
@@ -42,20 +48,6 @@ const updatePlantMetrics = async (req, res) => {
     const total = data.sensorsTotal;
     if (online !== undefined && total !== undefined && online > total) {
       return res.status(400).json({ success: false, message: "sensorsOnline cannot exceed sensorsTotal" });
-    }
-
-    for (const field of ["lastDesludging", "nextDesludging"]) {
-      if (req.body[field] !== undefined) {
-        if (req.body[field] === null || req.body[field] === "") {
-          data[field] = null;
-        } else {
-          const value = new Date(req.body[field]);
-          if (Number.isNaN(value.getTime())) {
-            return res.status(400).json({ success: false, message: `${field} must be a valid date` });
-          }
-          data[field] = value;
-        }
-      }
     }
 
     if (Object.keys(data).length === 0) {

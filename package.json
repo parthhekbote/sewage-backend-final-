@@ -4,7 +4,7 @@
   "description": "Sewage Management System Backend",
   "main": "src/server.js",
   "scripts": {
-    "start": "node src/server.js",
+    "start": "prisma migrate deploy && node src/server.js",
     "dev": "nodemon src/server.js",
     "seed": "prisma db seed",
     "prisma:generate": "prisma generate",
