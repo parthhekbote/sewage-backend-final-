@@ -1,3 +1,6 @@
+// PURPOSE:
+// This middleware configures Multer uploads for task-evidence files.
+// It creates the task-evidence directory and validates uploaded evidence formats.
 const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");

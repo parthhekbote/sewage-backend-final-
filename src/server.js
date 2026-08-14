@@ -1,3 +1,6 @@
+// PURPOSE:
+// This file starts the Express application after connecting to Prisma.
+// It also handles graceful shutdown by disconnecting the database client.
 require("dotenv").config();
 
 const app = require("./app");

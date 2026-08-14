@@ -1,3 +1,6 @@
+// PURPOSE:
+// This script seeds pump records for tanks using named pump templates.
+// It connects each created pump to its matching tank through Prisma.
 const { PrismaClient } = require("@prisma/client");
 
 const prisma = new PrismaClient();

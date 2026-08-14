@@ -1,3 +1,6 @@
+// PURPOSE:
+// This file implements user authentication and account password operations.
+// It registers and logs in users, issues JWTs, manages password resets, and returns account details.
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");

@@ -1,3 +1,6 @@
+// PURPOSE:
+// This file defines sensor-reading routes.
+// It connects reading creation, retrieval, and deletion endpoints to protected controller operations.
 const express = require("express");
 
 const {

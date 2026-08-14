@@ -1,3 +1,6 @@
+// PURPOSE:
+// This file implements sensor-reading creation, retrieval, and deletion controllers.
+// It manages readings and their sensor relationships through Prisma.
 const prisma = require("../../config/db");
 
 // CREATE SENSOR READING

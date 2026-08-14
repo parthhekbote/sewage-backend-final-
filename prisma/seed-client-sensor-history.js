@@ -1,3 +1,6 @@
+// PURPOSE:
+// This script seeds historical sensor readings from predefined base values.
+// It uses the shared Prisma client to create readings for client sensor history.
 const prisma = require('../src/config/db');
 
 const baseValues = {

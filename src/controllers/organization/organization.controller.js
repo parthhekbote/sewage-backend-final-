@@ -1,3 +1,6 @@
+// PURPOSE:
+// This file implements organization CRUD controller operations.
+// It manages organization records through the Prisma database client.
 const prisma = require("../../config/db");
 
 // CREATE ORGANIZATION

@@ -1,3 +1,6 @@
+// PURPOSE:
+// This file implements operator CRUD controller operations for engineer-assigned plants.
+// It validates status and phone data, hashes passwords, and manages operator users through Prisma.
 const bcrypt = require("bcryptjs");
 const prisma = require("../../config/db");
 

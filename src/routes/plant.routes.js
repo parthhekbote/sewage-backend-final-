@@ -1,3 +1,6 @@
+// PURPOSE:
+// This file defines plant management, metrics, and analytics routes.
+// It connects plant endpoints to controller functions with authentication and role authorization.
 const express = require("express");
 
 const {

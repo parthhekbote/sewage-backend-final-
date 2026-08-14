@@ -1,3 +1,6 @@
+// PURPOSE:
+// This file defines operator app routes for plant work, alerts, tasks, tanker logs, and manual tests.
+// It applies authentication, OPERATOR authorization, and evidence or receipt upload middleware where required.
 const express = require("express");
 const protect = require("../middleware/auth.middleware");
 const authorizeRoles = require("../middleware/role.middleware");

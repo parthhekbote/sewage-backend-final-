@@ -1,3 +1,6 @@
+// PURPOSE:
+// This file defines building management routes.
+// It connects building CRUD endpoints to controller functions with authentication and role authorization.
 const express = require("express");
 
 const {

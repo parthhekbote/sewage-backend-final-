@@ -1,3 +1,6 @@
+// PURPOSE:
+// This script clears the database and seeds organizations, facilities, and users.
+// It creates the initial buildings, plants, tanks, pumps, and role-specific accounts.
 const { PrismaClient } = require("@prisma/client");
 const bcrypt = require("bcryptjs");
 

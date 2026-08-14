@@ -1,3 +1,6 @@
+// PURPOSE:
+// This file defines organization management routes.
+// It connects organization CRUD endpoints to controller functions with authentication and role authorization.
 const express = require("express");
 
 const {

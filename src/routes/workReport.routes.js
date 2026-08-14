@@ -1,3 +1,6 @@
+// PURPOSE:
+// This file defines work-report routes.
+// It connects work report creation, retrieval, and update endpoints to protected controller operations.
 const express = require("express");
 
 const protect = require("../middleware/auth.middleware");

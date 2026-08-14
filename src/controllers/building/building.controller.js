@@ -1,3 +1,6 @@
+// PURPOSE:
+// This file implements building CRUD controller operations.
+// It manages buildings and their organization relationships through Prisma.
 const prisma = require("../../config/db");
 
 // CREATE BUILDING

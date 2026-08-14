@@ -1,3 +1,6 @@
+// PURPOSE:
+// This file defines the desludging record workflow routes.
+// It connects listing, scheduling, rescheduling, cancellation, start, and completion actions to role-authorized controllers.
 const express = require("express");
 const protect = require("../middleware/auth.middleware");
 const authorizeRoles = require("../middleware/role.middleware");

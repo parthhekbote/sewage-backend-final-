@@ -1,3 +1,6 @@
+// PURPOSE:
+// This file defines the sensor payload ingestion route.
+// It connects posted sensor payloads to the sensor ingestion controller.
 const express = require("express");
 
 const {

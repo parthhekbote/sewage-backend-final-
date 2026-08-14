@@ -1,3 +1,6 @@
+// PURPOSE:
+// This file implements operator app controllers for plant work, alerts, tasks, tanker logs, and manual tests.
+// It manages task evidence and tanker receipt files alongside operator-scoped Prisma operations.
 const fs = require("fs");
 const path = require("path");
 const prisma = require("../../config/db");

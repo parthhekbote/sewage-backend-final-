@@ -1,3 +1,6 @@
+// PURPOSE:
+// This middleware factory restricts authenticated requests to allowed user roles.
+// It rejects requests without a user or with a role outside the supplied roles.
 const authorizeRoles = (...allowedRoles) => {
   return (req, res, next) => {
     if (!req.user) {

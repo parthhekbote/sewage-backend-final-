@@ -1,3 +1,6 @@
+// PURPOSE:
+// This file implements plant CRUD, metrics update, and analytics controller operations.
+// It manages plant data and related operational summaries through Prisma.
 const prisma = require("../../config/db");
 const { randomUUID } = require("crypto");
 

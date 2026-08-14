@@ -1,3 +1,6 @@
+// PURPOSE:
+// This file defines ticket management and workflow routes.
+// It connects ticket CRUD, assignment, start, resolution, and closure endpoints to authorized controllers.
 const express = require("express");
 
 const {

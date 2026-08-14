@@ -1,3 +1,6 @@
+// PURPOSE:
+// This file implements engineer CRUD and availability controller operations.
+// It validates engineer status, hashes passwords, and manages engineer users through Prisma.
 const bcrypt = require("bcryptjs");
 const prisma = require("../../config/db");
 

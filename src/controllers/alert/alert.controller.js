@@ -1,3 +1,6 @@
+// PURPOSE:
+// This file implements alert CRUD, acknowledgement, and resolution controllers.
+// It validates alert severity and status values while managing alerts through Prisma.
 const prisma = require("../../config/db");
 
 const allowedSeverities = ["WARNING", "CRITICAL"];

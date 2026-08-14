@@ -1,3 +1,6 @@
+// PURPOSE:
+// This file defines manual-test-result routes.
+// It connects result creation and retrieval endpoints to protected controller operations.
 const express = require("express");
 
 const protect = require("../middleware/auth.middleware");

@@ -1,3 +1,6 @@
+// PURPOSE:
+// This file implements work-report creation, retrieval, and update controller operations.
+// It validates equipment conditions and uses Prisma to manage work report records.
 const prisma = require("../../config/db");
 
 const allowedConditions = [

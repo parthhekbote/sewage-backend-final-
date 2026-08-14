@@ -1,3 +1,6 @@
+// PURPOSE:
+// This file configures the Express application and mounts the API router.
+// It enables CORS, JSON request parsing, a health endpoint, and a 404 response.
 const express = require("express");
 const cors = require("cors");
 

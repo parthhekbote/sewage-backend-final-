@@ -1,3 +1,6 @@
+// PURPOSE:
+// This file implements engineer app controllers for assigned plants, tickets, sensors, alerts, and profiles.
+// It provides dashboards, plant history and analytics, and engineer ticket workflow operations through Prisma.
 const prisma = require("../../config/db");
 
 const engineerSensorTypes = [

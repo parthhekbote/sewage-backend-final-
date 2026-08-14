@@ -1,3 +1,6 @@
+// PURPOSE:
+// This file defines engineer management routes.
+// It connects engineer CRUD and availability endpoints to protected controller operations.
 const express = require("express");
 
 const {

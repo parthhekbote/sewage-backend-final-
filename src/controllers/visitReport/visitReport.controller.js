@@ -1,3 +1,6 @@
+// PURPOSE:
+// This file implements visit-report creation and retrieval controller operations.
+// It validates visit conditions and limits reports to the authenticated engineer's plant.
 const prisma = require("../../config/db");
 
 const allowedConditions = [

@@ -1,3 +1,6 @@
+// PURPOSE:
+// This file defines client app routes for organization plant data, alerts, tickets, tests, and tanker logs.
+// It applies authentication, CLIENT authorization, and tanker receipt upload middleware where required.
 const express = require("express");
 const protect = require("../middleware/auth.middleware");
 const authorizeRoles = require("../middleware/role.middleware");

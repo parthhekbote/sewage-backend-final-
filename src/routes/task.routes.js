@@ -1,3 +1,6 @@
+// PURPOSE:
+// This file defines task management and status workflow routes.
+// It connects task CRUD, start, and completion endpoints to authorized controller functions.
 const express = require("express");
 
 const protect = require("../middleware/auth.middleware");

@@ -1,3 +1,6 @@
+// PURPOSE:
+// This file aggregates feature routers under their API path prefixes.
+// It exposes authentication, management, app, reporting, and desludging routes.
 const express = require("express");
 
 const authRoutes = require("./auth.routes");

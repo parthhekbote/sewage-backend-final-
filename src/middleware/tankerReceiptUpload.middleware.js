@@ -1,3 +1,6 @@
+// PURPOSE:
+// This middleware configures Multer uploads for tanker receipt files.
+// It creates the receipt directory and stores validated uploads with generated names.
 const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");

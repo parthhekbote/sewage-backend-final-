@@ -1,3 +1,6 @@
+// PURPOSE:
+// This file implements ticket CRUD and assignment/status workflow controllers.
+// It validates ticket priorities and statuses while managing tickets through Prisma.
 const prisma = require("../../config/db");
 
 const allowedPriorities = ["LOW", "MEDIUM", "HIGH", "CRITICAL"];

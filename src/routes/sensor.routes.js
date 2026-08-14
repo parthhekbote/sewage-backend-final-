@@ -1,3 +1,6 @@
+// PURPOSE:
+// This file defines sensor management routes.
+// It connects sensor CRUD endpoints to controller functions with authentication and role authorization.
 const express = require("express");
 
 const {

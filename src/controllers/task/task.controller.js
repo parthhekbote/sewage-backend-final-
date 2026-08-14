@@ -1,3 +1,6 @@
+// PURPOSE:
+// This file implements task CRUD and status workflow controller operations.
+// It enforces engineer plant access while managing task assignments and completion through Prisma.
 const prisma = require("../../config/db");
 
 const allowedStatuses = [

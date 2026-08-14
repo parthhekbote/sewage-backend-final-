@@ -1,3 +1,6 @@
+// PURPOSE:
+// This file defines engineer app routes for dashboards, tickets, plants, sensors, alerts, and profiles.
+// It applies authentication and ENGINEER role authorization before controller operations.
 const express = require("express");
 
 const protect = require("../middleware/auth.middleware");

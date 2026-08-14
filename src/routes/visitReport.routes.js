@@ -1,3 +1,6 @@
+// PURPOSE:
+// This file defines visit-report routes.
+// It connects visit report creation and retrieval endpoints to protected controller operations.
 const express = require("express");
 
 const protect = require("../middleware/auth.middleware");

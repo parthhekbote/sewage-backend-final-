@@ -1,3 +1,6 @@
+// PURPOSE:
+// This file implements ingestion of validated sensor payloads.
+// It creates sensor readings and updates matching sensor status through Prisma.
 const prisma = require("../../config/db");
 
 const allowedSensorTypes = [

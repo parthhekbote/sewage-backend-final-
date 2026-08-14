@@ -1,3 +1,6 @@
+// PURPOSE:
+// This middleware authenticates protected requests with JSON Web Tokens.
+// It loads the active authenticated user from Prisma and assigns it to req.user.
 const jwt = require("jsonwebtoken");
 const prisma = require("../config/db");
 

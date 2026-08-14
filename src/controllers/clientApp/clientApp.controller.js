@@ -1,3 +1,6 @@
+// PURPOSE:
+// This file implements client app controllers for organization plants, alerts, tickets, tests, and tanker logs.
+// It restricts data to the client's organization and manages tanker receipt files through Prisma and the filesystem.
 const fs = require("fs");
 const path = require("path");
 const prisma = require("../../config/db");

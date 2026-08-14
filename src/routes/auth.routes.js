@@ -1,3 +1,6 @@
+// PURPOSE:
+// This file defines authentication and account routes.
+// It connects registration, login, password-reset, profile, and admin password actions to their controllers.
 const express = require("express");
 
 const protect = require("../middleware/auth.middleware");

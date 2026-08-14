@@ -1,3 +1,6 @@
+// PURPOSE:
+// This file implements the desludging record lifecycle controller operations.
+// It manages role-scoped listing, scheduling, rescheduling, cancellation, start, and completion through Prisma.
 const { randomUUID } = require("crypto");
 const prisma = require("../../config/db");
 

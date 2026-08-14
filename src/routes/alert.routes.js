@@ -1,3 +1,6 @@
+// PURPOSE:
+// This file defines alert management routes.
+// It connects alert CRUD, acknowledgement, and resolution endpoints to authorized controller operations.
 const express = require("express");
 
 const {

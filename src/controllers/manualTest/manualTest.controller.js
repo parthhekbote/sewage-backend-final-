@@ -1,3 +1,6 @@
+// PURPOSE:
+// This file implements manual-test-result creation and retrieval controller operations.
+// It validates result status and restricts results to the authenticated engineer's plant.
 const prisma = require("../../config/db");
 
 const allowedStatuses = [

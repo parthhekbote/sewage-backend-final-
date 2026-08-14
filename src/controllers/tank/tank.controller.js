@@ -1,3 +1,6 @@
+// PURPOSE:
+// This file implements tank CRUD controller operations.
+// It manages tank records and their related plant data through Prisma.
 const prisma = require("../../config/db");
 
 // CREATE TANK

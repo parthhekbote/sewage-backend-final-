@@ -1,3 +1,6 @@
+// PURPOSE:
+// This file implements sensor CRUD controller operations.
+// It validates sensor types and manages sensors with their tank relationships through Prisma.
 const prisma = require("../../config/db");
 
 const allowedSensorTypes = [

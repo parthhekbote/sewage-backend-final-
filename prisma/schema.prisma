@@ -1,3 +1,6 @@
+// PURPOSE:
+// This file defines the PostgreSQL Prisma schema for backend data.
+// It declares the application's models, enums, and their relationships.
 generator client {
   provider = "prisma-client-js"
 }
